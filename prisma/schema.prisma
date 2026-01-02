@@ -1,0 +1,204 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String
+  role          Role      @default(MEMBER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  workspaces    WorkspaceMember[]
+  documents     Document[]
+  tasks         Task[]
+  assignedTasks TaskAssignee[]
+  messages      Message[]
+  comments      Comment[]
+  activities    Activity[]
+  @@index([email])
+
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+model Workspace {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  image       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members    WorkspaceMember[]
+  documents  Document[]
+  tasks      Task[]
+  channels   Channel[]
+  activities Activity[]
+}
+
+model WorkspaceMember {
+  id          String   @id @default(cuid())
+  role        Role     @default(MEMBER)
+  joinedAt    DateTime @default(now())
+  
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId String
+
+  @@unique([userId, workspaceId])
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  title       String
+  content     String   @db.Text
+  isPublic    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  author      User       @relation(fields: [authorId], references: [id])
+  authorId    String
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId String
+  
+  comments    Comment[]
+  activities  Activity[]
+  @@index([workspaceId])
+  @@index([authorId])
+  @@index([createdAt])
+}
+
+model Task {
+  id          String      @id @default(cuid())
+  title       String
+  description String?     @db.Text
+  status      TaskStatus  @default(TODO)
+  priority    Priority    @default(MEDIUM)
+  dueDate     DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  creator     User           @relation(fields: [creatorId], references: [id])
+  creatorId   String
+  workspace   Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId String
+  
+  assignees   TaskAssignee[]
+  comments    Comment[]
+  activities  Activity[]
+  @@index([workspaceId])
+  @@index([status])
+  @@index([creatorId])
+  @@index([dueDate])
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  COMPLETED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model TaskAssignee {
+  id     String @id @default(cuid())
+  
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  @@unique([taskId, userId])
+}
+
+model Channel {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  isPrivate   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId String
+  
+  messages    Message[]
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  channelId String
+  @@index([channelId])
+  @@index([createdAt])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author     User      @relation(fields: [authorId], references: [id])
+  authorId   String
+  document   Document? @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  documentId String?
+  task       Task?     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId     String?
+}
+
+model Activity {
+  id        String       @id @default(cuid())
+  type      ActivityType
+  metadata  String       @db.Text // JSON string
+  createdAt DateTime     @default(now())
+
+  user        User       @relation(fields: [userId], references: [id])
+  userId      String
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId String
+  document    Document?  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  documentId  String?
+  task        Task?      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId      String?
+  @@index([workspaceId])
+  @@index([createdAt])
+}
+
+enum ActivityType {
+  DOCUMENT_CREATED
+  DOCUMENT_UPDATED
+  TASK_CREATED
+  TASK_UPDATED
+  TASK_COMPLETED
+  MEMBER_JOINED
+  COMMENT_ADDED
+}
