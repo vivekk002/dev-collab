@@ -4,7 +4,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen w-full relative overflow-hidden">
       {/* Background Pattern */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900" />
+      <div className="absolute inset-0 bg-linear-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900" />
 
       {/* Grid Pattern Overlay */}
       <div className="absolute inset-0 bg-grid-pattern opacity-[0.02]" />
