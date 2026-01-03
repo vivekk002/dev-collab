@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,8 +26,7 @@ import {
 } from "@/components/ui/form";
 import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
-import { auth } from "@/lib/auth";
-
+import { signIn } from "next-auth/react";
 // Validation schema
 const formSchema = z.object({
   name: z.string().min(3, "name must be at least 3 characters").max(20),
@@ -47,7 +46,6 @@ export default function RegisterPage() {
 
   const router = useRouter();
 
-  // Initialize form
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -57,24 +55,20 @@ export default function RegisterPage() {
     },
   });
 
-  // Submit handler
   async function onSubmit(values: FormValues) {
     setIsLoading(true);
     setError("");
 
     try {
-      // Axios automatically parses JSON and throws on error status
       const { data } = await axios.post("/api/v1/auth/register", values);
 
       console.log("Registration successful:", data);
+
       router.push("/login");
     } catch (err) {
-      // Axios error handling
       if (axios.isAxiosError(err)) {
-        // API returned an error response
         setError(err.response?.data?.error || "Something went wrong");
       } else {
-        // Network or other error
         setError("Network error. Please try again.");
       }
       console.error("Registration error:", err);
@@ -85,13 +79,14 @@ export default function RegisterPage() {
 
   return (
     <div className="flex items-center border-t-gray-200 border-t justify-center w-full min-h-[80vh] bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4">
-      <Card className="w-full max-w-md shadow-xl hover:shadow-gray-400 transition-shadow">
+      <Card className="w-full max-w-md shadow-xl border-primary/30 hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300">
+        {" "}
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">
-            Create an account
+          <CardTitle className="text-2xl font-bold text-primary">
+            Create your CollabSpace account
           </CardTitle>
-          <CardDescription>
-            Enter your details to create your CollabSpace account
+          <CardDescription className="text-muted-foreground">
+            Join us and start collaborating in your green workspace
           </CardDescription>
         </CardHeader>
         <CardContent>

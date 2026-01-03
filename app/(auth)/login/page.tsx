@@ -3,8 +3,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import z from "zod";
-import axios from "axios";
+import { z } from "zod"; // ← Changed: { z } instead of z
+import { signIn } from "next-auth/react"; // ← Changed: Use signIn from next-auth
 import {
   Card,
   CardContent,
@@ -25,25 +25,19 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
-import { redirect, useRouter } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   email: z.string().email("invalid email address"),
   password: z
     .string()
-    .min(8, "Password must be at leaast 8 characters long")
+    .min(8, "Password must be at least 8 characters long") // ← Fixed typo: "at leaast"
     .max(50),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
-export default async function LoginPage() {
-  const session = await auth();
-
-  if (session?.user) {
-    redirect("/workspace");
-  }
+export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -62,36 +56,43 @@ export default async function LoginPage() {
     setError("");
 
     try {
-      const { data } = await axios.post("/api/v1/auth/signin", values);
-      console.log("Login successful", data);
-      router.push("/workspace");
-    } catch (err) {
-      if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.error || "Something went wrong");
-      } else {
-        setError("Network error. Please try again.");
+      const result = await signIn("credentials", {
+        email: values.email,
+        password: values.password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError("Invalid email or password");
+        console.error("Login error:", result.error);
+      } else if (result?.ok) {
+        console.log("Login successful!");
+        router.push("/workspace");
+        router.refresh();
       }
+    } catch (err) {
+      setError("An error occurred. Please try again.");
       console.error("Login error:", err);
     } finally {
       setIsLoading(false);
     }
   }
+
   return (
-    <div className="border-t-gray-200 border-t  flex items-center justify-center w-full min-h-[80vh] bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4">
-      <Card className="w-full max-w-md shadow-xl hover:shadow-gray-400 transition-shadow">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">
+    <div className="border-t-gray-200 border-t flex items-center justify-center w-full min-h-[80vh] bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4">
+      <Card className="w-full max-w-md shadow-xl border-primary/30 hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300">
+        {" "}
+        <CardHeader className="space-y-1 items-center justify-center">
+          <CardTitle className="text-2xl font-bold text-primary">
             Welcome back to CollabSpace
           </CardTitle>
-          <CardDescription>
-            Enter your details to Login to your account
+          <CardDescription className="text-muted-foreground">
+            Enter your details to access your green workspace
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              {/* Name Field */}
-
               {/* Email Field */}
               <FormField
                 control={form.control}

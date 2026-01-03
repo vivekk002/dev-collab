@@ -1,3 +1,4 @@
+import { SessionProvider } from "@/hooks/session-provider";
 import "./globals.css";
 
 export default function RootLayout({
@@ -8,7 +9,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
-        {children}
+        <SessionProvider>{children}</SessionProvider>
       </body>
     </html>
   );
