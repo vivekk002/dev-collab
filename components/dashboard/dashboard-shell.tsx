@@ -6,6 +6,7 @@ import { ReactNode } from "react";
 import { Search, Bell } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface DashboardShellProps {
   children: ReactNode;
@@ -22,7 +23,7 @@ export function DashboardShell({ children, username }: DashboardShellProps) {
           <header className="sticky top-0 z-10 flex h-16 items-center  gap-4 border-b bg-background/95 backdrop-blur px-6">
             <SidebarTrigger className="hover:text-primary transition-colors" />
 
-            <div className="justify-between items-center flex flex-1 p-10">
+            <div className="justify-between items-center flex flex-1 p-5">
               <div className="flex-1 max-w-md">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -33,7 +34,7 @@ export function DashboardShell({ children, username }: DashboardShellProps) {
                 </div>
               </div>
 
-              <div className="flex items-center gap-8">
+              <div className="flex items-center gap-4">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -55,6 +56,7 @@ export function DashboardShell({ children, username }: DashboardShellProps) {
                     </div>
                   </div>
                 </div>
+                <ThemeToggle />
               </div>
             </div>
           </header>

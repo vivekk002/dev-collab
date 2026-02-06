@@ -1,9 +1,9 @@
-import NextAuth from "next-auth";
+import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { prisma } from "./db";
+import { prisma } from "./prisma";
 import bcrypt from "bcryptjs";
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const authOptions: NextAuthConfig = {
   trustHost: true,
   basePath: "/api/v1/auth",
   providers: [
@@ -27,7 +27,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
           const isPasswordValid = await bcrypt.compare(
             credentials.password as string,
-            user.password
+            user.password,
           );
           if (!isPasswordValid) {
             return null;
@@ -48,6 +48,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   session: {
     strategy: "jwt",
+    maxAge: 60 * 60,
   },
   pages: {
     signIn: "/login",
@@ -74,17 +75,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const isLoggedIn = !!auth?.user;
       const isAuthPage =
         nextUrl.pathname.startsWith("/login") ||
-        nextUrl.pathname.startsWith("/register");
+        nextUrl.pathname.startsWith("/signup") ||
+        nextUrl.pathname.startsWith("/auth");
       const isProtectedPage =
-        nextUrl.pathname.startsWith("/workspace") ||
-        nextUrl.pathname.startsWith("/documents") ||
-        nextUrl.pathname.startsWith("/tasks") ||
-        nextUrl.pathname.startsWith("/chat") ||
-        nextUrl.pathname.startsWith("/settings");
+        nextUrl.pathname.startsWith("/dashboard/workspace") ||
+        nextUrl.pathname.startsWith("/dashboard/documents") ||
+        nextUrl.pathname.startsWith("/dashboard/tasks") ||
+        nextUrl.pathname.startsWith("/dashboard/chat") ||
+        nextUrl.pathname.startsWith("/dashboard/settings") ||
+        nextUrl.pathname.startsWith("/dashboard");
 
       if (isAuthPage) {
         if (isLoggedIn)
-          return Response.redirect(new URL("/workspace", nextUrl));
+          return Response.redirect(new URL("/dashboard", nextUrl));
         return true; // Allow access to auth pages when not logged in
       }
 
@@ -95,4 +98,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return true;
     },
   },
-});
+};
+
+export const { handlers, auth, signIn, signOut } = NextAuth(authOptions);

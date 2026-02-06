@@ -61,13 +61,13 @@ export default function LoginPage() {
         password: values.password,
         redirect: false,
       });
-
+      console.log("result", result);
       if (result?.error) {
         setError("Invalid email or password");
-        console.error("Login error:", result.error);
+        console.error("Login error:", result);
       } else if (result?.ok) {
         console.log("Login successful!");
-        router.push("/workspace");
+        router.push("/dashboard");
         router.refresh();
       }
     } catch (err) {

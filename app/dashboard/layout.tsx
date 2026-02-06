@@ -18,8 +18,10 @@ export default async function DashboardLayout({
   }
 
   return (
-    <DashboardShell username={session.user.name || ""}>
-      {children}
-    </DashboardShell>
+    <div className="relative">
+      <DashboardShell username={session.user.name || ""}>
+        {children}
+      </DashboardShell>
+    </div>
   );
 }

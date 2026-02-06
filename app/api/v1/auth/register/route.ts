@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-import { error } from "console";
 
 const registerSchema = z.object({
   name: z.string().min(3, "name must be at least 3 characters").max(20),
